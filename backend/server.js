@@ -1,23 +1,28 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
+import express from "express"
+import cors from "cors"
+import dotenv from "dotenv"
+import mongoose from "mongoose"
+import userRoutes from "./routes/user.routes.js"
 
-dotenv.config();
+dotenv.config()
 
-const a = express();
+const a = express()
 
-a.use(express.json());
+a.use(express.json())
 
-a.use(
-  cors({
-    origin: process.env.CLIENT_URL, 
-  })
-);
+a.use(cors({
+  origin: process.env.CLIENT_URL
+}))
 
-a.get("/api/test", (b, c) => {
-  c.json({ msg: "Backend connected successfully 🚀" }); 
-});
+mongoose.connect(process.env.MONGO_URL)
+.then(()=>console.log("MongoDB connected"))
 
-a.listen(5000, () => {
-  console.log("Server running on port 5000");
-});
+a.get("/api/test",(b,c)=>{
+  c.json({msg:"Backend connected successfully"})
+})
+
+a.use("/api/users",userRoutes)
+
+a.listen(5000,()=>{
+  console.log("Server running on port 5000")
+}) 
