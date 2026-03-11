@@ -1,13 +1,15 @@
-import ConnectionTest from "./ConnectionTest"
+import Login from "./Login"
+import Dashboard from "./Dashboard"
 
-function App() {
+function App(){
 
-  return (
-    <div>
-      <h1>Frontend Backend Connection</h1>
-      <ConnectionTest />
-    </div>
-  )
+  const a = localStorage.getItem("token")
+
+  if(a){
+    return <Dashboard/>
+  }
+
+  return <Login/>
 }
 
 export default App
