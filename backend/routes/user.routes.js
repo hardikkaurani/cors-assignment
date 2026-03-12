@@ -1,22 +1,37 @@
-import express from "express"
-import bcrypt from "bcryptjs"
-import User from "../models/user.model.js"
+a.put("/update/:id", async (b,c)=>{
 
-const a = express.Router()
+  const d = await User.findById(b.params.id)
 
-a.post("/register", async (b,c)=>{
+  if(!d){
+    return c.status(404).json({msg:"User not found"})
+  }
 
-  const {name,email,password} = b.body
+  if(d.email !== b.body.email){
+    return c.status(403).json({msg:"Not authorized"})
+  }
 
-  const d = await bcrypt.hash(password,10)
+  d.name = b.body.name
 
-  const e = await User.create({
-    name,
-    email,
-    password:d
-  })
+  await d.save()
 
-  c.json({msg:"User registered",user:e})
+  c.json({msg:"Updated",user:d})
+
 })
 
-export default a
+a.delete("/delete/:id", async (b,c)=>{
+
+  const d = await User.findById(b.params.id)
+
+  if(!d){
+    return c.status(404).json({msg:"User not found"})
+  }
+
+  if(d.email !== b.body.email){
+    return c.status(403).json({msg:"Not authorized"})
+  }
+
+  await d.deleteOne()
+
+  c.json({msg:"User deleted"})
+
+})
