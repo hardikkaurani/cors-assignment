@@ -1,33 +1,44 @@
-import {useState} from "react"
+import { useState } from "react"
+import { toast } from "react-toastify"
 
 function Login(){
 
   const [a,b] = useState("")
   const [c,d] = useState("")
-  const [e,f] = useState("")
 
   const g = async (h)=>{
     h.preventDefault()
 
-    const i = await fetch("/api/users/login",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        email:a,
-        password:c
+    try{
+
+      const i = await fetch("/api/users/login",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          email:a,
+          password:c
+        })
       })
-    })
 
-    const j = await i.json()
+      const j = await i.json()
 
-    if(j.token){
+      if(!i.ok){
+        throw new Error(j.message)
+      }
+
       localStorage.setItem("token",j.token)
       localStorage.setItem("user",JSON.stringify(j.user))
+
+      toast.success("Login successful")
+
       window.location="/dashboard"
-    }else{
-      f(j.msg)
+
+    }catch(k){
+
+      toast.error(k.message)
+
     }
   }
 
@@ -52,8 +63,6 @@ function Login(){
         <button>Login</button>
 
       </form>
-
-      <p>{e}</p>
 
     </div>
   )

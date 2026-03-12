@@ -1,3 +1,22 @@
+import express from "express"
+import User from "../models/user.model.js"
+
+const a = express.Router()
+
+
+a.get("/:id", async (b,c)=>{
+
+  const d = await User.findById(b.params.id)
+
+  if(!d){
+    return c.status(404).json({msg:"User not found"})
+  }
+
+  c.json(d)
+
+})
+
+
 a.put("/update/:id", async (b,c)=>{
 
   const d = await User.findById(b.params.id)
@@ -14,9 +33,10 @@ a.put("/update/:id", async (b,c)=>{
 
   await d.save()
 
-  c.json({msg:"Updated",user:d})
+  c.json({msg:"Profile updated",user:d})
 
 })
+
 
 a.delete("/delete/:id", async (b,c)=>{
 
@@ -35,3 +55,5 @@ a.delete("/delete/:id", async (b,c)=>{
   c.json({msg:"User deleted"})
 
 })
+
+export default a

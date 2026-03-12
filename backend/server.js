@@ -3,6 +3,7 @@ import cors from "cors"
 import dotenv from "dotenv"
 import mongoose from "mongoose"
 import userRoutes from "./routes/user.routes.js"
+import errorHandler from "./middleware/errorMiddleware.js"
 
 dotenv.config()
 
@@ -22,6 +23,7 @@ a.get("/api/test",(b,c)=>{
 })
 
 a.use("/api/users",userRoutes)
+app.use(errorHandler)
 
 a.listen(5000,()=>{
   console.log("Server running on port 5000")

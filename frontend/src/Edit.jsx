@@ -31,6 +31,8 @@ function Edit(){
     const i = await h.json()
 
     alert(i.msg)
+
+    window.location="/dashboard"
   }
 
   return(
@@ -41,7 +43,10 @@ function Edit(){
 
       <form onSubmit={f}>
 
-        <input value={a} onChange={(x)=>b(x.target.value)} />
+        <input
+        value={a}
+        onChange={(x)=>b(x.target.value)}
+        />
 
         <button>Update</button>
 
