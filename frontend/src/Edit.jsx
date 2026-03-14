@@ -1,38 +1,38 @@
-import {useState,useEffect} from "react"
+import {useState} from "react"
+import { useAuth } from "./hooks/useAuth"
+import { toast } from "react-toastify"
+import { useNavigate } from "react-router-dom"
 
 function Edit(){
 
-  const [a,b] = useState("")
-  const c = JSON.parse(localStorage.getItem("user"))
+  const [editName, setEditName] = useState("")
+  const { user, updateProfile } = useAuth()
+  const navigate = useNavigate()
 
-  useEffect(()=>{
+  // Use editName if provided, otherwise use user.name from context
+  const currentName = editName || user?.name || ""
 
-    fetch("/api/users/"+c._id)
-    .then(d=>d.json())
-    .then(e=>b(e.name))
+  const handleSubmit = async(e)=>{
 
-  },[])
+    e.preventDefault()
 
-  const f = async(g)=>{
+    if(!currentName.trim()){
+      toast.error("Name is required")
+      return
+    }
 
-    g.preventDefault()
+    const result = await updateProfile(user._id, editName || user?.name, user.email)
 
-    const h = await fetch("/api/users/update/"+c._id,{
-      method:"PUT",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        name:a,
-        email:c.email
-      })
-    })
+    if(result.success){
+      toast.success(result.message)
+      navigate("/dashboard")
+    } else {
+      toast.error(result.message)
+    }
+  }
 
-    const i = await h.json()
-
-    alert(i.msg)
-
-    window.location="/dashboard"
+  if(!user){
+    return <div>Loading...</div>
   }
 
   return(
@@ -41,11 +41,12 @@ function Edit(){
 
       <h2>Edit Profile</h2>
 
-      <form onSubmit={f}>
+      <form onSubmit={handleSubmit} key={user?._id}>
 
         <input
-        value={a}
-        onChange={(x)=>b(x.target.value)}
+        value={editName || user?.name || ""}
+        onChange={(e)=>setEditName(e.target.value)}
+        placeholder="Name"
         />
 
         <button>Update</button>

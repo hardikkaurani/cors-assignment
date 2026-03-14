@@ -1,39 +1,64 @@
+import { useEffect } from "react"
+import { useAuth } from "./hooks/useAuth"
+import { toast } from "react-toastify"
+import { useNavigate } from "react-router-dom"
+import socket from "./services/socket"
+
 function Dashboard(){
 
-  const a = JSON.parse(localStorage.getItem("user"))
+  const { user, logout, deleteAccount } = useAuth()
+  const navigate = useNavigate()
 
-  const b = ()=>{
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-    window.location="/"
+  /* socket connection */
+  useEffect(()=>{
+
+    socket.connect()
+
+    socket.on("connect",()=>{
+      console.log("Connected:",socket.id)
+    })
+
+    socket.on("disconnect",()=>{
+      console.log("Disconnected")
+    })
+
+    socket.on("connect_error",(b)=>{
+      console.log("Error:",b.message)
+    })
+
+    return ()=>{
+
+      socket.off("connect")
+      socket.off("disconnect")
+      socket.off("connect_error")
+
+      socket.disconnect()
+
+    }
+
+  },[])
+
+  const handleLogout = () => {
+    logout()
+    navigate("/")
   }
 
-  const c = async ()=>{
+  const handleDelete = async () => {
 
-    const d = confirm("Are you sure you want to delete your account?")
+    const confirmed = window.confirm("Are you sure you want to delete your account?")
 
-    if(!d){
+    if(!confirmed){
       return
     }
 
-    const e = await fetch("/api/users/delete/"+a._id,{
-      method:"DELETE",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        email:a.email
-      })
-    })
+    const result = await deleteAccount(user._id, user.email)
 
-    const f = await e.json()
-
-    alert(f.msg)
-
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-
-    window.location="/"
+    if(result.success){
+      toast.success(result.message)
+      navigate("/")
+    } else {
+      toast.error(result.message)
+    }
   }
 
   return(
@@ -42,22 +67,22 @@ function Dashboard(){
 
       <h1>Dashboard</h1>
 
-      <p>Welcome {a?.name}</p>
-      <p>{a?.email}</p>
+      <p>Welcome {user?.name}</p>
+      <p>{user?.email}</p>
 
-      <button onClick={b}>
+      <button onClick={handleLogout}>
         Logout
       </button>
 
       <br/><br/>
 
-      <button onClick={()=>window.location="/edit"}>
+      <button onClick={()=>navigate("/edit")}>
         Edit Profile
       </button>
 
       <br/><br/>
 
-      <button onClick={c}>
+      <button onClick={handleDelete}>
         Delete Account
       </button>
 

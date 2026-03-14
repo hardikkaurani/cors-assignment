@@ -1,71 +1,71 @@
 import {useState} from "react"
+import { useAuth } from "./hooks/useAuth"
+import { toast } from "react-toastify"
+import { useNavigate } from "react-router-dom"
 
 function Register(){
 
-  const [a,b] = useState("")
-  const [c,d] = useState("")
-  const [e,f] = useState("")
-  const [g,h] = useState("")
-  const [i,j] = useState("")
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const { register } = useAuth()
+  const navigate = useNavigate()
 
-  const k = async (l)=>{
-    l.preventDefault()
+  const handleSubmit = async (e)=>{
+    e.preventDefault()
 
-    if(e!==g){
-      j("Passwords not match")
+    if(password !== confirmPassword){
+      toast.error("Passwords do not match")
       return
     }
 
-    const m = await fetch("/api/users/register",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        name:a,
-        email:c,
-        password:e
-      })
-    })
+    const result = await register(name, email, password)
 
-    const n = await m.json()
-
-    j(n.msg)
+    if(result.success){
+      toast.success(result.message)
+      navigate("/login")
+    } else {
+      toast.error(result.message)
+    }
   }
 
   return(
     <div>
       <h2>Register</h2>
 
-      <form onSubmit={k}>
+      <form onSubmit={handleSubmit}>
 
         <input
         placeholder="Name"
-        onChange={(x)=>b(x.target.value)}
+        value={name}
+        onChange={(e)=>setName(e.target.value)}
         />
 
         <input
         placeholder="Email"
-        onChange={(x)=>d(x.target.value)}
+        type="email"
+        value={email}
+        onChange={(e)=>setEmail(e.target.value)}
         />
 
         <input
         placeholder="Password"
         type="password"
-        onChange={(x)=>f(x.target.value)}
+        value={password}
+        onChange={(e)=>setPassword(e.target.value)}
         />
 
         <input
         placeholder="Confirm Password"
         type="password"
-        onChange={(x)=>h(x.target.value)}
+        value={confirmPassword}
+        onChange={(e)=>setConfirmPassword(e.target.value)}
         />
 
         <button>Register</button>
 
       </form>
-
-      <p>{i}</p>
 
     </div>
   )

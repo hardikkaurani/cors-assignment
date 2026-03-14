@@ -1,44 +1,25 @@
 import { useState } from "react"
+import { useAuth } from "./hooks/useAuth"
 import { toast } from "react-toastify"
+import { useNavigate } from "react-router-dom"
 
 function Login(){
 
-  const [a,b] = useState("")
-  const [c,d] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
-  const g = async (h)=>{
-    h.preventDefault()
+  const handleSubmit = async (e)=>{
+    e.preventDefault()
 
-    try{
+    const result = await login(email, password)
 
-      const i = await fetch("/api/users/login",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          email:a,
-          password:c
-        })
-      })
-
-      const j = await i.json()
-
-      if(!i.ok){
-        throw new Error(j.message)
-      }
-
-      localStorage.setItem("token",j.token)
-      localStorage.setItem("user",JSON.stringify(j.user))
-
-      toast.success("Login successful")
-
-      window.location="/dashboard"
-
-    }catch(k){
-
-      toast.error(k.message)
-
+    if(result.success){
+      toast.success(result.message)
+      navigate("/dashboard")
+    } else {
+      toast.error(result.message)
     }
   }
 
@@ -47,17 +28,20 @@ function Login(){
 
       <h2>Login</h2>
 
-      <form onSubmit={g}>
+      <form onSubmit={handleSubmit}>
 
         <input
         placeholder="Email"
-        onChange={(x)=>b(x.target.value)}
+        type="email"
+        value={email}
+        onChange={(e)=>setEmail(e.target.value)}
         />
 
         <input
         type="password"
         placeholder="Password"
-        onChange={(x)=>d(x.target.value)}
+        value={password}
+        onChange={(e)=>setPassword(e.target.value)}
         />
 
         <button>Login</button>
