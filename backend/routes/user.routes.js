@@ -54,7 +54,7 @@ a.post("/login", async (b,c)=>{
       return c.status(401).json({message:"Invalid credentials"})
     }
 
-    const token = jwt.sign({id: user._id}, process.env.JWT_SECRET || "secret", {expiresIn: "7d"})
+    const token = jwt.sign({id: user._id, email: user.email}, process.env.JWT_SECRET || "secret", {expiresIn: "7d"})
 
     c.json({
       msg:"Login successful",
