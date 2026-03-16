@@ -4,8 +4,10 @@ import dotenv from "dotenv"
 import mongoose from "mongoose"
 import { createServer } from "http"
 import { Server } from "socket.io"
+import jwt from "jsonwebtoken"
 
 import userRoutes from "./routes/user.routes.js"
+import { createPostRoutes } from "./routes/post.routes.js"
 import errorHandler from "./middleware/errorMiddleware.js"
 
 dotenv.config()
@@ -34,13 +36,37 @@ const io = new Server(httpServer,{
   }
 })
 
+/* socket authentication middleware */
+io.use((socket,next)=>{
+
+  const token = socket.handshake.auth.token
+
+  if(!token){
+    return next(new Error("Authentication error"))
+  }
+
+  try{
+
+    const decoded = jwt.verify(token,process.env.JWT_SECRET || "secret")
+
+    socket.user = decoded
+
+    next()
+
+  }
+  catch(err){
+    next(new Error("Invalid token"))
+  }
+
+})
+
 /* socket connection */
 io.on("connection",(socket)=>{
 
-  console.log("User connected:",socket.id)
+  console.log("User connected:",socket.user.email)
 
   socket.on("disconnect",()=>{
-    console.log("User disconnected:",socket.id)
+    console.log("User disconnected:",socket.user.email)
   })
 
 })
@@ -52,6 +78,7 @@ a.get("/api/test",(b,c)=>{
 
 /* routes */
 a.use("/api/users",userRoutes)
+a.use("/api/posts", createPostRoutes(io))
 
 /* error middleware */
 a.use(errorHandler)
