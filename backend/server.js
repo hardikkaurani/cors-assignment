@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken"
 
 import userRoutes from "./routes/user.routes.js"
 import { createPostRoutes } from "./routes/post.routes.js"
+import uploadRoutes from "./routes/upload.routes.js"
 import errorHandler from "./middleware/errorMiddleware.js"
 
 dotenv.config()
@@ -79,6 +80,7 @@ a.get("/api/test",(b,c)=>{
 /* routes */
 a.use("/api/users",userRoutes)
 a.use("/api/posts", createPostRoutes(io))
+a.use("/api/upload", uploadRoutes)
 
 /* error middleware */
 a.use(errorHandler)

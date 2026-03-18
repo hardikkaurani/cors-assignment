@@ -2,7 +2,7 @@ import Post from "../models/post.model.js"
 
 export const createPost = async (req, res, io) => {
   try {
-    const { title, content } = req.body
+    const { title, content, coverImage } = req.body
     const userId = req.user?.id || req.body.userId
 
     if (!title || !content) {
@@ -12,7 +12,8 @@ export const createPost = async (req, res, io) => {
     const newPost = new Post({
       userId,
       title,
-      content
+      content,
+      coverImage: coverImage || null
     })
 
     await newPost.save()

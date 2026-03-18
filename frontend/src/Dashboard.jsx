@@ -3,37 +3,59 @@ import { useAuth } from "./hooks/useAuth"
 import toast from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 import socket from "./services/socket"
+import CreatePost from "./CreatePost"
 
 function Dashboard(){
 
   const { user, logout, deleteAccount } = useAuth()
   const navigate = useNavigate()
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [posts, setPosts] = useState([])
+  const [postsLoading, setPostsLoading] = useState(false)
+
+  /* Fetch posts */
+  const fetchPosts = async () => {
+    try {
+      setPostsLoading(true)
+      const response = await fetch("http://localhost:5000/api/posts", {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setPosts(data)
+      }
+    } catch (err) {
+      toast.error("Error fetching posts: " + err.message)
+    } finally {
+      setPostsLoading(false)
+    }
+  }
 
   /* socket connection */
-  useEffect(()=>{
+  useEffect(() => {
 
     socket.connect()
 
-    socket.on("connect",()=>{
-      console.log("Connected:",socket.id)
+    socket.on("connect", () => {
+      console.log("Connected:", socket.id)
     })
 
-    socket.on("disconnect",()=>{
+    socket.on("disconnect", () => {
       console.log("Disconnected")
     })
 
-    socket.on("connect_error",(b)=>{
-      console.log("Error:",b.message)
+    socket.on("connect_error", (b) => {
+      console.log("Error:", b.message)
     })
 
-    socket.on("newPost", (data)=>{
+    socket.on("newPost", (data) => {
       toast.success(data.message || "New post created!")
+      fetchPosts()
     })
 
-    return ()=>{
+    return () => {
 
       socket.off("connect")
       socket.off("disconnect")
@@ -44,43 +66,15 @@ function Dashboard(){
 
     }
 
-  },[])
+  }, [])
 
-  const handleCreatePost = async (e) => {
-    e.preventDefault()
-    
-    if (!title.trim() || !content.trim()) {
-      toast.error("Title and content are required")
-      return
-    }
+  /* Initial posts load */
+  useEffect(() => {
+    fetchPosts()
+  }, [])
 
-    setLoading(true)
-    try {
-      const response = await fetch("http://localhost:5000/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify({
-          title,
-          content,
-          userId: user._id
-        })
-      })
-
-      if (response.ok) {
-        setTitle("")
-        setContent("")
-        toast.success("Post created successfully!")
-      } else {
-        toast.error("Failed to create post")
-      }
-    } catch (err) {
-      toast.error("Error creating post: " + err.message)
-    } finally {
-      setLoading(false)
-    }
+  const handlePostCreated = () => {
+    fetchPosts()
   }
 
   const handleLogout = () => {
@@ -92,13 +86,13 @@ function Dashboard(){
 
     const confirmed = window.confirm("Are you sure you want to delete your account?")
 
-    if(!confirmed){
+    if (!confirmed) {
       return
     }
 
     const result = await deleteAccount(user._id, user.email)
 
-    if(result.success){
+    if (result.success) {
       toast.success(result.message)
       navigate("/")
     } else {
@@ -106,7 +100,7 @@ function Dashboard(){
     }
   }
 
-  return(
+  return (
 
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
 
@@ -117,43 +111,49 @@ function Dashboard(){
 
       <hr />
 
-      <h2>Create Post</h2>
-      <form onSubmit={handleCreatePost}>
-        <div style={{ marginBottom: "10px" }}>
-          <input 
-            type="text" 
-            placeholder="Post Title" 
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-          />
-        </div>
-        <div style={{ marginBottom: "10px" }}>
-          <textarea 
-            placeholder="Post Content" 
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box", minHeight: "100px" }}
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create Post"}
-        </button>
-      </form>
+      <CreatePost user={user} onPostCreated={handlePostCreated} />
 
       <hr />
+
+      <h2>Posts</h2>
+      {postsLoading ? (
+        <p>Loading posts...</p>
+      ) : posts.length === 0 ? (
+        <p>No posts yet. Create one above!</p>
+      ) : (
+        <div>
+          {posts.map((post) => (
+            <div key={post._id} style={{ marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "8px" }}>
+              {post.coverImage && (
+                <img 
+                  src={post.coverImage} 
+                  alt="cover" 
+                  style={{ maxWidth: "100%", maxHeight: "300px", marginBottom: "10px", borderRadius: "4px" }}
+                />
+              )}
+              <h3>{post.title}</h3>
+              <p>{post.content}</p>
+              <small style={{ color: "#666" }}>
+                By {post.userId?.name} • {new Date(post.createdAt).toLocaleDateString()}
+              </small>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <hr />
+
+      <button onClick={() => navigate("/edit")}>
+        Edit Profile
+      </button>
+
+      <br /><br />
 
       <button onClick={handleLogout}>
         Logout
       </button>
 
-      <br/><br/>
-
-      <button onClick={()=>navigate("/edit")}>
-        Edit Profile
-      </button>
-
-      <br/><br/>
+      <br /><br />
 
       <button onClick={handleDelete}>
         Delete Account
