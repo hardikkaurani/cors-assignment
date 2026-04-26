@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { buildHealthResponse } from "./utils/healthResponse.js";
 
 dotenv.config();
 
@@ -10,12 +11,12 @@ a.use(express.json());
 
 a.use(
   cors({
-    origin: process.env.CLIENT_URL, 
+    origin: process.env.CLIENT_URL,
   })
 );
 
 a.get("/api/test", (b, c) => {
-  c.json({ msg: "Backend connected successfully 🚀" }); 
+  c.json(buildHealthResponse());
 });
 
 a.listen(5000, () => {
