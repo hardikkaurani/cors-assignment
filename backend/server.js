@@ -1,3 +1,4 @@
+
 import express from "express"
 import cors from "cors"
 import dotenv from "dotenv"
@@ -5,6 +6,12 @@ import mongoose from "mongoose"
 import { createServer } from "http"
 import { Server } from "socket.io"
 import jwt from "jsonwebtoken"
+
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { buildHealthResponse } from "./utils/healthResponse.js";
+
 
 import userRoutes from "./routes/user.routes.js"
 import { createPostRoutes } from "./routes/post.routes.js"
@@ -14,6 +21,7 @@ import errorHandler from "./middleware/errorMiddleware.js"
 dotenv.config()
 
 const a = express()
+
 
 /* middleware */
 a.use(express.json())
@@ -68,7 +76,13 @@ io.on("connection",(socket)=>{
 
   socket.on("disconnect",()=>{
     console.log("User disconnected:",socket.user.email)
+=======
+a.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+
   })
+
 
 })
 
@@ -90,3 +104,12 @@ const PORT = process.env.PORT || 5000
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+
+a.get("/api/test", (b, c) => {
+  c.json(buildHealthResponse());
+});
+
+a.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
+
